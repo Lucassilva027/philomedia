@@ -6,6 +6,8 @@
  * não puxar Wikipedia + custom-quotes no grafo inicial.
  */
 
+import { getUiLocale } from '/scripts/services/uiLocale.js';
+
 export { getQuoteCatalog, getQuotes } from '/scripts/services/quoteCatalogClient.js';
 
 const API_PHILOSOPHERS_ENDPOINT = '/api/philosophers';
@@ -302,7 +304,9 @@ function normalizeReferencePayload(name, payload) {
 async function fetchReferenceFromSummaryEndpoint(name, title) {
   const candidates = buildSummaryCandidates(title);
 
-  for (const lang of ['en', 'pt']) {
+  const preferredLangs = getUiLocale() === 'pt' ? ['pt', 'en'] : ['en', 'pt'];
+
+  for (const lang of preferredLangs) {
     for (const candidate of candidates) {
       try {
         const params = new URLSearchParams({ title: candidate, lang });
@@ -324,7 +328,7 @@ async function fetchReferenceFromSummaryEndpoint(name, title) {
 }
 
 export async function getPhilosopherReference(title, wikiTitle = '') {
-  const cacheKey = `${title}::${wikiTitle}`;
+  const cacheKey = `${title}::${wikiTitle}::${getUiLocale()}`;
   if (!referenceLookupCache.has(cacheKey)) {
     referenceLookupCache.set(cacheKey, withTimeout((async () => {
       try {

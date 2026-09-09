@@ -1,4 +1,3 @@
-import { analyzeWorkForThemes } from './hermeneutics.js';
 import { curatedQuoteMatches } from './curatedmatches.js';
 import {
   formatThemeLabel,
@@ -475,13 +474,6 @@ function accumulateThemeScores(quotes = []) {
       const nextScore = (scores.get(normalizedTheme) || 0) + Math.max(6, 14 - index * 2);
       scores.set(normalizedTheme, nextScore);
     });
-
-    analyzeWorkForThemes(quote.quote || '')
-      .slice(0, 4)
-      .forEach(({ theme, score }, index) => {
-        const nextScore = (scores.get(theme) || 0) + Math.max(2, Math.round(score / 2) - index);
-        scores.set(theme, nextScore);
-      });
   });
 
   return [...scores.entries()]

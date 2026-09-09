@@ -93,32 +93,6 @@ async function fetchFromExternalAndLocal() {
   const { customQuotes } = await import('/scripts/custom-quotes.js');
   const { getCustomQuoteTranslationPt } = await import('/scripts/services/customQuoteTranslationsPt.js');
 
-  let apiQuotes = [];
-
-  try {
-    const [quotesRes, philosophersRes] = await Promise.all([
-      fetch('https://philosophersapi.com/api/quotes'),
-      fetch('https://philosophersapi.com/api/philosophers'),
-    ]);
-
-    if (!quotesRes.ok || !philosophersRes.ok) {
-      throw new Error('External philosophers API unavailable');
-    }
-
-    const quotesData = await quotesRes.json();
-    const philosophersData = await philosophersRes.json();
-    const philosopherMap = new Map(philosophersData.map(p => [p.id, p.name]));
-
-    apiQuotes = quotesData.map(q => ({
-      id: q.id || null,
-      quote: q.quote,
-      author: q.philosopher ? (philosopherMap.get(q.philosopher.id) || 'Unknown') : 'Unknown',
-      themes: q.tags || [],
-    }));
-  } catch (err) {
-    console.warn('[PhiloMedia] External API unavailable, using local quotes only:', err.message);
-  }
-
   const combined = new Map();
   customQuotes.forEach(q => {
     const quotePt = getCustomQuoteTranslationPt(q.id);
@@ -133,7 +107,6 @@ async function fetchFromExternalAndLocal() {
       quote_pt: quotePt,
     });
   });
-  apiQuotes.forEach(q => { if (!combined.has(q.quote)) combined.set(q.quote, q); });
 
   return Array.from(combined.values());
 }

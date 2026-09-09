@@ -1,6 +1,7 @@
 import { t } from '/scripts/services/i18n.js';
 
 const SESSION_ENDPOINT = '/auth/session';
+const SESSION_TIMEOUT_MS = 2500;
 
 let cachedSession = null;
 let inflightSessionRequest = null;
@@ -14,16 +15,23 @@ export async function getSession({ force = false } = {}) {
     return inflightSessionRequest;
   }
 
-  inflightSessionRequest = fetch(SESSION_ENDPOINT, {
-    credentials: 'same-origin',
-  })
-    .then(async response => {
+  inflightSessionRequest = (async () => {
+    const controller = typeof AbortController === 'function' ? new AbortController() : null;
+    const timer = controller
+      ? setTimeout(() => controller.abort(), SESSION_TIMEOUT_MS)
+      : null;
+
+    try {
+      const response = await fetch(SESSION_ENDPOINT, {
+        credentials: 'same-origin',
+        signal: controller?.signal,
+      });
       const payload = await response.json().catch(() => ({}));
 
       if (!response.ok) {
         return {
           authenticated: false,
-          oauthEnabled: false,
+          oauthEnabled: payload.oauthEnabled !== false,
           user: null,
           error: payload.error || 'Session unavailable',
         };
@@ -34,13 +42,17 @@ export async function getSession({ force = false } = {}) {
         oauthEnabled: Boolean(payload.oauthEnabled),
         user: payload.user || null,
       };
-    })
-    .catch(() => ({
-      authenticated: false,
-      oauthEnabled: false,
-      user: null,
-      error: 'Session unavailable',
-    }))
+    } catch {
+      return {
+        authenticated: false,
+        oauthEnabled: true,
+        user: null,
+        error: 'Session unavailable',
+      };
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  })()
     .finally(() => {
       inflightSessionRequest = null;
     });
@@ -116,6 +128,16 @@ export async function setupAuthUI() {
   authSlot.className = 'nav-auth-slot';
   if (!authSlot.parentElement) {
     nav.appendChild(authSlot);
+  }
+
+  if (!authSlot.querySelector('[data-auth-role="login"]') && !authSlot.querySelector('[data-auth-role="logout"]')) {
+    authSlot.appendChild(
+      createNavLink({
+        href: '/auth/google',
+        text: t('nav.login'),
+        dataRole: 'login',
+      })
+    );
   }
 
   const libraryLink = nav.querySelector('[data-auth-link="library"]');

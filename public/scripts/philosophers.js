@@ -183,16 +183,17 @@ function applyReferenceToProfile(profile, reference) {
     changed = true;
   }
 
+  // Curated / PT copy already on the card must not be replaced by English Wikipedia.
   if (needsReferenceMetadata(profile)) {
-    if (reference.period && reference.period !== profile.period) {
+    if (!profile.period && reference.period) {
       profile.period = reference.period;
       changed = true;
     }
-    if (reference.summary && reference.summary !== profile.summary) {
+    if (!profile.summary && reference.summary) {
       profile.summary = reference.summary;
       changed = true;
     }
-    if (reference.focus && reference.focus !== profile.focus) {
+    if (!profile.focus && reference.focus) {
       profile.focus = reference.focus;
       changed = true;
     }
@@ -203,7 +204,9 @@ function applyReferenceToProfile(profile, reference) {
 }
 
 async function hydrateVisibleProfiles(container, profiles) {
-  const pendingProfiles = profiles.filter(profile => !profile.portraitUrl || needsReferenceMetadata(profile));
+  const pendingProfiles = profiles.filter(profile =>
+    !profile.portraitUrl || needsReferenceMetadata(profile)
+  );
   if (!pendingProfiles.length) return;
 
   await Promise.all(
@@ -273,14 +276,18 @@ async function init() {
 
   try {
     const locale = getUiLocale();
-    const [quotesForIndex, philosopherDirectory, submittedProfiles] = await Promise.all([
+    state.profiles = buildPhilosopherIndexProfiles([], [], []).filter(isIndexReadyProfile);
+    if (state.profiles.length) {
+      renderPage();
+    }
+
+    const [quotesForIndex, submittedProfiles] = await Promise.all([
       getQuoteCatalog(locale),
-      getPhilosopherDirectory(),
       getSubmittedPhilosophers(),
     ]);
     const profiles = buildPhilosopherIndexProfiles(
       filterPhilosopherCatalogQuotes(quotesForIndex, locale),
-      philosopherDirectory,
+      [],
       submittedProfiles,
     )
       .filter(isIndexReadyProfile);
@@ -292,6 +299,18 @@ async function init() {
 
     state.profiles = profiles;
     renderPage();
+
+    getPhilosopherDirectory()
+      .then(directory => {
+        if (!Array.isArray(directory) || !directory.length) return;
+        state.profiles = buildPhilosopherIndexProfiles(
+          filterPhilosopherCatalogQuotes(quotesForIndex, locale),
+          directory,
+          submittedProfiles,
+        ).filter(isIndexReadyProfile);
+        renderPage();
+      })
+      .catch(() => {});
   } catch (error) {
     renderError(gridContainer, t('philosophers.error_build'));
   }

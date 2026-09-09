@@ -35,6 +35,13 @@ export function resolvePageLocale(req) {
   return preferredLocaleFromHeader(req.get?.('accept-language'));
 }
 
+const SEO_BOT_UA = /bot|crawler|spider|facebookexternalhit|twitterbot|slackbot|whatsapp|telegrambot|linkedinbot|discordbot|preview/i;
+
+export function shouldResolveTmdbSeo(req) {
+  if (process.env.NODE_ENV === 'test') return true;
+  return SEO_BOT_UA.test(String(req?.get?.('user-agent') || req?.headers?.['user-agent'] || ''));
+}
+
 export function tmdbLanguageForLocale(locale) {
   return String(locale).startsWith('pt') ? 'pt-BR' : 'en-US';
 }
@@ -214,7 +221,7 @@ export async function renderDetailsHtml(req) {
     `/html/details.html${id && mediaType ? `?id=${encodeURIComponent(id)}&type=${encodeURIComponent(mediaType)}` : ''}`
   );
 
-  if (!id || !mediaType) {
+  if (!id || !mediaType || !shouldResolveTmdbSeo(req)) {
     return applyHtmlSeo(html, {
       title: locale === 'pt' ? 'PhiloMedia | Uma leitura filosófica' : 'PhiloMedia | A philosophical reading',
       description: locale === 'pt'

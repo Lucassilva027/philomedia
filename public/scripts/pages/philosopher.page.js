@@ -1,6 +1,5 @@
 import { setupAuthUI } from '/scripts/auth-ui.js';
 import {
-  getPhilosopherDirectory,
   getPhilosopherPortrait,
   getPhilosopherReference,
   getQuoteCatalog,
@@ -9,7 +8,6 @@ import {
 import { renderMediaCards } from '/scripts/media-card.js';
 import { getDetailsFromTMDB } from '/scripts/seriesapi.js';
 import { discoverTMDBCached, searchTMDBCached } from '/scripts/services/tmdbCachedClient.js';
-import { getReviewContextForItem } from '/scripts/services/searchLensReviewRerankService.js';
 import { analyzeWorkForThemes } from '/scripts/hermeneutics.js';
 import { getLensById } from '/scripts/domain/searchFilters.js';
 import { updatePageSeo } from '/scripts/seo.js';
@@ -610,9 +608,9 @@ function applyReferenceToProfile(profile, reference) {
   return {
     ...profile,
     portraitUrl: profile.portraitUrl || reference.portraitUrl || '',
-    period: needsReferenceMetadata(profile) && reference.period ? reference.period : profile.period,
-    summary: needsReferenceMetadata(profile) && reference.summary ? reference.summary : profile.summary,
-    focus: needsReferenceMetadata(profile) && reference.focus ? reference.focus : profile.focus,
+    period: profile.period || reference.period || '',
+    summary: profile.summary || reference.summary || '',
+    focus: profile.focus || reference.focus || '',
     needsReferenceMetadata: false,
   };
 }
@@ -635,30 +633,6 @@ function renderNotFound() {
       <p><a href="/html/philosophers.html">${escapeHtml(t('philosopher.not_found_link'))}</a></p>
     </div>
   `);
-}
-
-async function rerankCandidatesWithReviews(profile, items) {
-  const leadItems = items.slice(0, REVIEW_RERANK_LIMIT);
-  const tailItems = items.slice(REVIEW_RERANK_LIMIT);
-
-  const rerankedLead = await Promise.all(
-    leadItems.map(async item => {
-      const reviewContext = await getReviewContextForItem(item);
-      const reviewScore = scoreProfileTextAffinity(profile, reviewContext);
-      return {
-        ...item,
-        _reviewScore: reviewScore,
-        _philosopherScore: (item._philosopherScore || 0) + reviewScore * 1.1 + (reviewContext ? 2 : 0),
-      };
-    })
-  );
-
-  return [...rerankedLead, ...tailItems].sort((a, b) =>
-    (b._philosopherScore || 0) - (a._philosopherScore || 0)
-    || (b._reviewScore || 0) - (a._reviewScore || 0)
-    || (Number(b.vote_average) || 0) - (Number(a.vote_average) || 0)
-    || (Number(b.popularity) || 0) - (Number(a.popularity) || 0)
-  );
 }
 
 async function renderRelatedWorks(profile) {
@@ -711,7 +685,7 @@ async function renderRelatedWorks(profile) {
         || (Number(b.popularity) || 0) - (Number(a.popularity) || 0)
       );
 
-    const reranked = await rerankCandidatesWithReviews(profile, rankedPool.slice(0, Math.max(WORK_LIMIT, REVIEW_RERANK_LIMIT)));
+    const reranked = rankedPool.slice(0, Math.max(WORK_LIMIT, REVIEW_RERANK_LIMIT));
     const minimumScore = Number(profile.relatedWorkThreshold) || 24;
     const fallbackScore = Math.max(18, minimumScore - 8);
     const strongMatches = reranked.filter(item => (item._philosopherScore || 0) >= minimumScore);
@@ -783,20 +757,28 @@ async function init() {
 
   try {
     const locale = getUiLocale();
-    const [quotes, philosopherDirectory, submittedProfiles] = await Promise.all([
+    const seedProfile = getPhilosopherProfileBySlug([], slug, [], []);
+    if (seedProfile) {
+      if (state) state.innerHTML = '';
+      if (content) content.hidden = false;
+      renderHeader(seedProfile);
+      renderStats(seedProfile);
+      renderQuotes(seedProfile);
+    }
+
+    const [quotes, submittedProfiles] = await Promise.all([
       getQuoteCatalog(locale),
-      getPhilosopherDirectory(),
       getSubmittedPhilosophers(),
     ]);
     let profile = getPhilosopherProfileBySlug(
       filterPhilosopherCatalogQuotes(quotes, locale),
       slug,
-      philosopherDirectory,
+      [],
       submittedProfiles
     );
 
     if (!profile) {
-      renderNotFound();
+      if (!seedProfile) renderNotFound();
       return;
     }
 
@@ -807,7 +789,7 @@ async function init() {
     renderStats(profile);
     renderQuotes(profile);
 
-    const referenceTask = hydrateReference(profile)
+    hydrateReference(profile)
       .then(updated => {
         if (!updated) return;
         profile = updated;
@@ -816,12 +798,10 @@ async function init() {
       })
       .catch(() => {});
 
-    await Promise.all([
-      renderRelatedWorks(profile),
-      referenceTask,
-    ]);
+    renderRelatedWorks(profile).catch(() => {});
   } catch (error) {
-    renderNotFound();
+    const contentEl = document.getElementById('philosopher-content');
+    if (!contentEl || contentEl.hidden) renderNotFound();
   }
 }
 

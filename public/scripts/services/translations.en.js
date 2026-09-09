@@ -31,6 +31,7 @@ export const EN_TRANSLATIONS = {
   'home.seo_title': 'PhiloMedia | Philosophy through cinema',
   'home.seo_description': 'PhiloMedia reads films and series as philosophy: lenses, quotes, and thinkers for the next title you watch.',
   'home.loading_quote': 'Loading quote...',
+  'home.fallback_quote': 'Think deeply, watch meaningfully.',
   'home.featured_title': 'Today\'s pairing on screen',
   'home.featured_subtitle': 'Titles chosen to carry today\'s quote into a film or series you can actually watch.',
   'home.load_more': 'Load more related works',

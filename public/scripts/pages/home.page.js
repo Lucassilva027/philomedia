@@ -114,7 +114,7 @@ async function getQuoteForHome() {
   if (allQuotes.length === 0) {
     return {
       id: null,
-      quote: 'Think deeply, watch meaningfully.',
+      quote: t('home.fallback_quote'),
       author: 'PhiloMedia',
       themes: [],
     };
@@ -122,7 +122,7 @@ async function getQuoteForHome() {
 
   return selectHomeQuote(allQuotes, getDayKey(), ratingsByQuoteId) || {
     id: null,
-    quote: 'Think deeply, watch meaningfully.',
+    quote: t('home.fallback_quote'),
     author: 'PhiloMedia',
     themes: [],
   };

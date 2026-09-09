@@ -31,6 +31,7 @@ export const PT_TRANSLATIONS = {
   'home.seo_title': 'PhiloMedia | Filosofia através do cinema',
   'home.seo_description': 'O PhiloMedia lê cinema e séries como filosofia: lentes, citações e pensadores para o próximo título que você assiste.',
   'home.loading_quote': 'Carregando citação...',
+  'home.fallback_quote': 'Pense fundo. Assista com atenção.',
   'home.featured_title': 'O par de hoje na tela',
   'home.featured_subtitle': 'Obras escolhidas para levar a citação de hoje a um filme ou série que você pode assistir.',
   'home.load_more': 'Carregar mais obras relacionadas',
