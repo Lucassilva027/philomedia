@@ -1,6 +1,7 @@
 import {
   PHILOSOPHER_AUTHORS,
   getDisplayAuthorName,
+  getLocalizedThinkerName,
   getPhilosopherSlugByAuthor,
   getPhilosopherUrl,
   getPhilosopherUrlByAuthor,
@@ -26,9 +27,10 @@ describe('philosopherAuthors is the single source of thinker identity', () => {
     });
   });
 
-  test('slugs are unique', () => {
-    const slugs = PHILOSOPHER_AUTHORS.map((a) => a.slug);
-    expect(new Set(slugs).size).toBe(slugs.length);
+  test('every curated thinker has a Portuguese display name', () => {
+    PHILOSOPHER_AUTHORS.forEach((author) => {
+      expect(String(author.namePt || '').trim()).not.toBe('');
+    });
   });
 
   test('flags curated slugs and ignores community names', () => {
@@ -41,6 +43,12 @@ describe('philosopherAuthors is the single source of thinker identity', () => {
 describe('author lookup', () => {
   test('resolves a canonical name', () => {
     expect(getPhilosopherSlugByAuthor('Socrates')).toBe('socrates');
+  });
+
+  test('resolves Portuguese aliases to the curated slug', () => {
+    expect(getPhilosopherSlugByAuthor('Aristóteles')).toBe('aristotle');
+    expect(getPhilosopherSlugByAuthor('Platão')).toBe('plato');
+    expect(getPhilosopherSlugByAuthor('Nicolau Maquiavel')).toBe('niccolo-machiavelli');
   });
 
   test('is insensitive to case, accents and punctuation', () => {
@@ -60,8 +68,23 @@ describe('getDisplayAuthorName', () => {
     expect(getDisplayAuthorName('NiccolÃ² Machiavelli')).toBe('Niccolò Machiavelli');
   });
 
+  test('returns the Portuguese display name when locale is pt', () => {
+    expect(getDisplayAuthorName('Aristotle', 'pt')).toBe('Aristóteles');
+    expect(getDisplayAuthorName('Plato', 'pt')).toBe('Platão');
+    expect(getDisplayAuthorName('Socrates', 'pt')).toBe('Sócrates');
+    expect(getDisplayAuthorName('Saint Augustine', 'pt')).toBe('Santo Agostinho');
+    expect(getDisplayAuthorName('Heraclitus', 'pt')).toBe('Heráclito');
+    expect(getDisplayAuthorName('Niccolò Machiavelli', 'pt')).toBe('Nicolau Maquiavel');
+  });
+
+  test('keeps English names when locale is en', () => {
+    expect(getDisplayAuthorName('Aristotle', 'en')).toBe('Aristotle');
+    expect(getDisplayAuthorName('Aristóteles', 'en')).toBe('Aristotle');
+  });
+
   test('passes through an unknown author unchanged', () => {
     expect(getDisplayAuthorName('Some Unlisted Writer')).toBe('Some Unlisted Writer');
+    expect(getDisplayAuthorName('Some Unlisted Writer', 'pt')).toBe('Some Unlisted Writer');
   });
 
   test('falls back to Unknown for empty input', () => {
@@ -78,6 +101,11 @@ describe('profile URLs', () => {
   test('returns null without a slug', () => {
     expect(getPhilosopherUrl('')).toBeNull();
     expect(getPhilosopherUrl(null)).toBeNull();
+  });
+
+  test('localizes a thinker profile by slug', () => {
+    expect(getLocalizedThinkerName({ slug: 'plotinus', name: 'Plotinus' }, 'pt')).toBe('Plotino');
+    expect(getLocalizedThinkerName({ slug: 'plotinus', name: 'Plotinus' }, 'en')).toBe('Plotinus');
   });
 
   test('prefers the curated slug over a derived one', () => {

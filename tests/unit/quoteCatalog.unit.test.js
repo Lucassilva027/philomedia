@@ -199,4 +199,29 @@ describe('quote catalog service', () => {
       quote_en: 'Experience is perception understood.',
     }));
   });
+
+  test('pairs the Kierkegaard envy line with its Portuguese original', () => {
+    const merged = mergeWikiBilingualPairs(
+      [mapWikiQuoteEntry({
+        text: 'A inveja é admiração escondida.',
+        author: 'Søren Kierkegaard',
+        theme: 'existencialismo',
+        lang: 'pt',
+      }, 257)],
+      [mapTranslatedWikiQuoteEntry({
+        id: 'wiki-258',
+        text: 'Envy is concealed admiration.',
+        author: 'Søren Kierkegaard',
+        theme: 'existencialismo',
+        originalText: 'A inveja é admiração escondida.',
+        originalLanguage: 'pt',
+        translationStatus: 'machine',
+      }, 0)],
+    );
+
+    expect(merged[0]).toEqual(expect.objectContaining({
+      quote_en: 'Envy is concealed admiration.',
+      quote_pt: 'A inveja é admiração escondida.',
+    }));
+  });
 });

@@ -88,7 +88,9 @@ function renderThinkerBackLink(slug) {
   }
 
   const author = getPhilosopherAuthorBySlug(slug);
-  const label = t('details.back_to_thinker', { name: author?.name || slug });
+  const label = t('details.back_to_thinker', {
+    name: getDisplayAuthorName(author?.name || slug, getUiLocale()) || slug,
+  });
   crumb.hidden = false;
   crumb.innerHTML = `<a class="details-thinker-back" href="${href}">${escapeHtml(label)}</a>`;
 }
@@ -122,7 +124,7 @@ function showError(message) {
   });
 
   document.getElementById('details-container')
-    ?.querySelectorAll('.details-poster, .details-info')
+    ?.querySelectorAll('.details-poster, .details-info, .details-poster-tools')
     .forEach(el => {
       el.style.display = 'none';
     });
@@ -473,7 +475,7 @@ function renderStaticQuote({ text, author }) {
   textEl.textContent = `"${text}"`;
   authorEl.textContent = '';
 
-  const displayName = getDisplayAuthorName(author);
+  const displayName = getDisplayAuthorName(author, getUiLocale());
   const url = getPhilosopherUrlByAuthor(author);
 
   if (!url) {
@@ -495,7 +497,7 @@ function renderAIExpansion({ text, author, explanation }) {
 
   const block = document.createElement('div');
   block.className = 'ai-quote-block';
-  const displayName = getDisplayAuthorName(author);
+  const displayName = getDisplayAuthorName(author, getUiLocale());
   const authorUrl = getPhilosopherUrlByAuthor(author);
   const authorMarkup = authorUrl
     ? `<a href="${authorUrl}">- ${escapeHtml(displayName)}</a>`
@@ -638,7 +640,7 @@ async function init() {
   try {
     const [details, allQuotes] = await Promise.all([
       getDetailsFromTMDB(id, type).catch(() => null),
-      getQuoteCatalog('en').catch(() => getQuoteCatalog(getUiLocale())).catch(() => getQuotes()).catch(() => []),
+      getQuoteCatalog(getUiLocale()).catch(() => getQuotes()).catch(() => []),
     ]);
 
     if (!details) {

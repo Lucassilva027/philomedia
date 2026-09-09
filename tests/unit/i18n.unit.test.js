@@ -64,6 +64,10 @@ describe('translation tables', () => {
     expect(resolveTranslation('library.sort.rating', 'en')).toBe('TMDB rating');
     expect(resolveTranslation('library.sort.mine', 'pt')).toBe('Minha nota');
     expect(resolveTranslation('home.hero_kicker', 'pt')).toBe('Filosofia através do cinema');
+    expect(resolveTranslation('home.hero_lead', 'pt')).toBe('Citação do dia');
+    expect(resolveTranslation('home.hero_lead', 'en')).toBe('Quote of the day');
+    expect(resolveTranslation('details.quote_rating_sign_in', 'pt')).toBe('Entre para uma reflexão inicial mais completa.');
+    expect(resolveTranslation('details.quote_rating_sign_in', 'en')).toBe('Sign in for a fuller first reflection.');
     expect(resolveTranslation('home.seo_description', 'en')).toMatch(/lenses, quotes, and thinkers/i);
     expect(resolveTranslation('details.your_rating', 'pt')).toBe('Sua nota');
   });

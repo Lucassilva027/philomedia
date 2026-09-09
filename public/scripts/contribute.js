@@ -234,7 +234,7 @@ function renderExistingPreview(profile) {
         ${renderExistingPortraitPlaceholder()}
         <div>
           <p class="profile-eyebrow contribution-profile-preview-eyebrow">${escapeHtml(t('contribute.existing_eyebrow'))}</p>
-          <h3>${escapeHtml(profile.name)}</h3>
+          <h3>${escapeHtml(display.name || profile.name)}</h3>
           <p class="section-subtitle">${escapeHtml(display.period || t('contribute.existing_archive'))}</p>
         </div>
       </div>
@@ -252,7 +252,7 @@ function renderExistingPreview(profile) {
 
   fillPortraitHost(existingThinkerPreview.querySelector('[data-portrait-host]'), {
     url: profile.portraitUrl,
-    alt: t('contribute.portrait_alt', { name: profile.name }),
+    alt: t('contribute.portrait_alt', { name: display.name || profile.name }),
     initials: profile.initials || 'PM',
     loading: 'lazy',
   });

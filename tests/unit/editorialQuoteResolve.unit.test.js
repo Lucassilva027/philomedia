@@ -47,4 +47,23 @@ describe('resolveEditorialQuoteForLocale', () => {
     expect(result).toContain('Heráclito');
     expect(result).not.toBe(english);
   });
+
+  test('resolves Portuguese when the English line matches quote_en', async () => {
+    mockBuildQuoteCatalog.mockResolvedValue([
+      {
+        author: 'Søren Kierkegaard',
+        quote_en: 'Envy is concealed admiration.',
+        quote_pt: 'A inveja é admiração escondida.',
+        quote_original: 'A inveja é admiração escondida.',
+        originalLanguage: 'pt',
+      },
+    ]);
+
+    const result = await resolveEditorialQuoteForLocale(
+      { quote: 'Envy is concealed admiration.', author: 'Søren Kierkegaard' },
+      'pt',
+    );
+
+    expect(result).toBe('A inveja é admiração escondida.');
+  });
 });

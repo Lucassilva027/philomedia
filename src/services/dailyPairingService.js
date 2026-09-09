@@ -260,6 +260,9 @@ export async function getDailyPairing({
     { quote: englishQuote, author: selected.entry.author },
     locale,
   );
+  const quotePt = locale === 'pt' && displayQuote && displayQuote !== englishQuote
+    ? displayQuote
+    : '';
 
   return {
     source: 'editorial-calendar',
@@ -269,6 +272,7 @@ export async function getDailyPairing({
     slug: selected.entry.slug,
     quote: displayQuote,
     quote_en: englishQuote,
+    quote_pt: quotePt,
     author: selected.entry.author,
     themes: selected.entry.themes,
     highlightsTitle: 'In dialogue with today\'s quote',

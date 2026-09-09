@@ -165,11 +165,14 @@ function localizeHomeContent(content) {
 }
 
 function mapDailyPairingContent(payload) {
+  const quoteEn = payload.quote_en || payload.quote;
+  const quotePt = payload.quote_pt || '';
   return localizeHomeContent({
     id: payload.slug || null,
     source: payload.source || 'editorial-calendar',
     quote: payload.quote,
-    quote_en: payload.quote_en || payload.quote,
+    quote_en: quoteEn,
+    quote_pt: quotePt,
     author: payload.author,
     themes: payload.themes || [],
     highlightsContext: payload.highlightsContext || '',
@@ -304,7 +307,7 @@ function setLoading(highlightsEl, loading = true) {
 function renderQuoteAuthor(container, author) {
   if (!container) return;
 
-  const displayName = getDisplayAuthorName(author);
+  const displayName = getDisplayAuthorName(author, getUiLocale());
   const url = getPhilosopherUrlByAuthor(author);
 
   container.textContent = '';
@@ -395,10 +398,10 @@ async function init() {
   try {
     const content = await loadContent();
     const displayQuote = await resolveDisplayQuoteText({
-      quote: content.quote_en || content.quote,
+      quote: content.quote,
       author: content.author,
       id: content.id,
-      quote_en: content.quote_en || content.quote,
+      quote_en: content.quote_en,
       quote_pt: content.quote_pt,
       quote_original: content.quote_original,
       originalLanguage: content.originalLanguage,

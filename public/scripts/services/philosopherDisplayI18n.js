@@ -1,4 +1,5 @@
 import { formatThemeLabel } from '/scripts/domain/canonicalThemes.js';
+import { getLocalizedThinkerName } from '/scripts/domain/philosopherAuthors.js';
 import { resolveQuoteForLocale } from '/scripts/domain/quoteDisplay.js';
 import { PHILOSOPHER_DEF_PT } from '/scripts/services/philosopherDefPt.js';
 import { resolveTranslation } from '/scripts/services/i18n.js';
@@ -48,7 +49,7 @@ export function resolveClientQuoteText(quote, locale = getUiLocale()) {
 }
 
 export function localizeThinkerCard(profile, locale = getUiLocale()) {
-  if (!profile) return { period: '', summary: '', focus: '', themeLabels: [], quotePreview: '' };
+  if (!profile) return { name: '', period: '', summary: '', focus: '', themeLabels: [], quotePreview: '' };
 
   const loc = normalizeUiLocale(locale);
   const copy = getThinkerCopyForLocale(profile, loc);
@@ -71,5 +72,12 @@ export function localizeThinkerCard(profile, locale = getUiLocale()) {
     ? resolveClientQuoteText(featured, loc)
     : profile.featuredQuotePreview;
 
-  return { period, summary, focus, themeLabels, quotePreview };
+  return {
+    name: getLocalizedThinkerName(profile, loc),
+    period,
+    summary,
+    focus,
+    themeLabels,
+    quotePreview,
+  };
 }

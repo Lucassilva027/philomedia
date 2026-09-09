@@ -73,10 +73,6 @@
           <div id="lens-suggestions" class="filter-chip-row" aria-label="Suggested philosophical lenses"></div>
           <p id="lens-active-summary" class="lens-active-summary" hidden aria-live="polite"></p>
         </div>
-        <div class="filter-cluster">
-          <p class="filter-label" data-i18n="search.provider_label">Where to watch</p>
-          <div id="provider-filters" class="filter-chip-row" role="group" aria-label="Filter by streaming service"></div>
-        </div>
         <div id="search-toolbar" class="search-toolbar" hidden>
           <div class="filter-cluster">
             <p class="filter-label" data-i18n="search.media_label">Media</p>
@@ -87,6 +83,10 @@
             <div id="rating-filters" class="filter-chip-row" aria-label="Filter by TMDB rating"></div>
           </div>
           <button type="button" id="clear-search-filters" class="ghost-button" data-i18n="search.clear_filters">Clear filters</button>
+          <div class="filter-cluster search-provider-cluster">
+            <p class="filter-label" data-i18n="search.provider_label">Where to watch</p>
+            <div id="provider-filters" class="filter-chip-row" role="group" data-i18n-aria-label="search.provider_aria" aria-label="Filter by streaming service"></div>
+          </div>
         </div>
       </div>
     </section>

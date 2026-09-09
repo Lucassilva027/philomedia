@@ -31,6 +31,12 @@ export function getDisplayQuoteText(quote, locale = getUiLocale()) {
   if (loc === 'pt') {
     const byId = getCustomQuoteTranslationPt(quote.id);
     if (byId) return finalizePtQuoteText(byId);
+
+    const displayed = String(quote.quote ?? '').trim();
+    const quoteEn = String(quote.quote_en ?? '').trim();
+    if (displayed && quoteEn && normalizeKey(displayed) !== normalizeKey(quoteEn)) {
+      return finalizePtQuoteText(displayed);
+    }
   }
 
   const resolved = resolveQuoteForLocale(quote, loc);
@@ -42,7 +48,7 @@ let catalogLookupPromise = null;
 async function getCatalogLookup(locale) {
   const loc = normalizeUiLocale(locale);
   if (!catalogLookupPromise || catalogLookupPromise.locale !== loc) {
-    catalogLookupPromise = (async () => {
+    const pending = (async () => {
       const { getQuoteCatalog } = await import('/scripts/philosophersapi.js');
       const catalog = await getQuoteCatalog(loc);
       const byAuthor = new Map();
@@ -55,6 +61,8 @@ async function getCatalogLookup(locale) {
       });
       return { locale: loc, byAuthor };
     })();
+    pending.locale = loc;
+    catalogLookupPromise = pending;
   }
   return catalogLookupPromise;
 }

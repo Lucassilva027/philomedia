@@ -431,7 +431,7 @@ function applyPortrait(sigil, profile, url) {
 
   const applied = fillPortraitHost(sigil, {
     url,
-    alt: t('philosophers.portrait_alt', { name: profile.name }),
+    alt: t('philosophers.portrait_alt', { name: localizeThinkerCard(profile).name || profile.name }),
     initials: profile.initials,
     loading: 'eager',
     width: 176,
@@ -452,8 +452,8 @@ function renderHeader(profile) {
   const copy = getThinkerCopyForLocale(profile, loc);
   const display = localizeThinkerCard(profile, loc);
   updatePageSeo({
-    title: t('philosopher.seo_title', { name: profile.name }),
-    description: copy.summary || t('philosopher.seo_description', { name: profile.name }),
+    title: t('philosopher.seo_title', { name: display.name || profile.name }),
+    description: copy.summary || t('philosopher.seo_description', { name: display.name || profile.name }),
     path: `${window.location.pathname}?slug=${encodeURIComponent(profile.slug)}`,
     image: profile.portraitUrl || '',
     type: 'profile',
@@ -473,7 +473,7 @@ function renderHeader(profile) {
       showSigilFallback(sigil, profile);
     }
   }
-  if (name) name.textContent = profile.name;
+  if (name) name.textContent = display.name || profile.name;
   if (period) period.textContent = display.period;
   if (summary) summary.textContent = display.summary;
   if (focus) focus.textContent = display.focus || copy.focus;
@@ -510,10 +510,11 @@ function renderStats(profile) {
   const container = document.getElementById('philosopher-stats');
   if (!container) return;
 
+  const displayName = localizeThinkerCard(profile).name || profile.name;
   const hasQuotes = Number(profile.quoteCount) > 0;
   const quoteCaption = hasQuotes
-    ? t('philosopher.stat_quotes_caption', { name: profile.name })
-    : t('philosopher.stat_quotes_caption_empty', { name: profile.name });
+    ? t('philosopher.stat_quotes_caption', { name: displayName })
+    : t('philosopher.stat_quotes_caption_empty', { name: displayName });
   const threadCaption = hasQuotes
     ? t('philosopher.stat_thread_caption')
     : t('philosopher.stat_thread_caption_empty');
@@ -542,7 +543,9 @@ function updateRelatedWorkStat(profile, count) {
   const caption = document.getElementById('philosopher-related-caption');
   if (value) value.textContent = String(Math.max(Number(count) || 0, Number(profile.linkedWorkCount) || 0));
   if (caption) {
-    caption.textContent = t('philosopher.stat_works_caption_live', { name: profile.name });
+    caption.textContent = t('philosopher.stat_works_caption_live', {
+      name: localizeThinkerCard(profile).name || profile.name,
+    });
   }
 }
 
@@ -648,7 +651,7 @@ async function renderRelatedWorks(profile) {
       <div class="skeleton-card"></div>
       <div class="skeleton-card"></div>
     </div>
-    <p class="loading-message">${escapeHtml(t('philosopher.works_loading', { name: profile.name }))}</p>
+    <p class="loading-message">${escapeHtml(t('philosopher.works_loading', { name: localizeThinkerCard(profile).name || profile.name }))}</p>
   `;
 
   try {
@@ -697,7 +700,9 @@ async function renderRelatedWorks(profile) {
     ).slice(0, WORK_LIMIT);
 
     if (summary) {
-      summary.textContent = t('philosopher.works_summary', { name: profile.name });
+      summary.textContent = t('philosopher.works_summary', {
+        name: localizeThinkerCard(profile).name || profile.name,
+      });
     }
 
     if (!ranked.length) {

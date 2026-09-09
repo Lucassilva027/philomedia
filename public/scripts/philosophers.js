@@ -77,7 +77,7 @@ function applyCardPortrait(card, profile) {
   if (!host) return;
   fillPortraitHost(host, {
     url: profile.portraitUrl,
-    alt: t('philosophers.portrait_alt', { name: profile.name }),
+    alt: t('philosophers.portrait_alt', { name: localizeThinkerCard(profile, getUiLocale()).name || profile.name }),
     initials: profile.initials,
     loading: 'lazy',
   });
@@ -96,7 +96,7 @@ function renderCards(container, profiles) {
           ${renderPortraitPlaceholder()}
           <div class="philosopher-card-headline">
             <p class="philosopher-card-period" data-philosopher-period>${escapeHtml(display.period)}</p>
-            <h3>${escapeHtml(profile.name)}</h3>
+            <h3>${escapeHtml(display.name || profile.name)}</h3>
           </div>
         </div>
         <p class="philosopher-card-summary" data-philosopher-summary>${escapeHtml(display.summary)}</p>
@@ -237,6 +237,15 @@ function renderPage() {
   const gridContainer = document.getElementById('philosophers-grid');
   const summaryContainer = document.getElementById('philosophers-pagination-summary');
   const paginationContainer = document.getElementById('philosophers-pagination');
+  const loc = getUiLocale();
+
+  state.profiles.sort((a, b) =>
+    (localizeThinkerCard(a, loc).name || a.name || '').localeCompare(
+      localizeThinkerCard(b, loc).name || b.name || '',
+      loc === 'pt' ? 'pt' : 'en',
+      { sensitivity: 'base' }
+    )
+  );
 
   renderStats(statsContainer, state.profiles);
 

@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import * as tmdbClient from './tmdbClient.js';
 import { buildPublicUrl } from '../utils/publicUrl.js';
 import { preferredLocaleFromHeader } from '../utils/preferredLocale.js';
-import { getPhilosopherAuthorBySlug } from '../../public/scripts/domain/philosopherAuthors.js';
+import { getLocalizedThinkerName, getPhilosopherAuthorBySlug } from '../../public/scripts/domain/philosopherAuthors.js';
 import { PHILOSOPHER_DEFINITIONS } from '../../public/scripts/philosopher-data.js';
 import { PHILOSOPHER_DEF_PT } from '../../public/scripts/services/philosopherDefPt.js';
 
@@ -185,7 +185,7 @@ export function buildPhilosopherSeoPayload(slug, locale, canonical) {
   const curated = PHILOSOPHER_DEFINITIONS.find(item => item.slug === slug)
     || getPhilosopherAuthorBySlug(slug);
   const ptCopy = PHILOSOPHER_DEF_PT[slug] || {};
-  const name = curated?.name || slug;
+  const name = getLocalizedThinkerName(curated, locale) || slug;
   const summary = locale === 'pt'
     ? (ptCopy.summary || curated?.summary || '')
     : (curated?.summary || ptCopy.summary || '');
