@@ -1,3 +1,6 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   mapCustomQuoteEntry,
   mapDatabaseQuoteEntry,
@@ -5,9 +8,36 @@ import {
   mapTranslatedWikiQuoteEntry,
   mergeQuoteCatalogEntries,
   mergeWikiBilingualPairs,
+  readLocalWikiQuoteEntries,
+  readTranslatedWikiQuoteEntries,
 } from '../../src/services/quoteCatalog.js';
 
+const DATA_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../scripts/data');
+
 describe('quote catalog service', () => {
+  test('ships bilingual Wikiquote data used by daily pairing on deploy', async () => {
+    await expect(fs.access(path.join(DATA_DIR, 'quotes_wikiquote.json'))).resolves.toBeUndefined();
+    await expect(fs.access(path.join(DATA_DIR, 'quotes_wikiquote.en.json'))).resolves.toBeUndefined();
+
+    const [local, translated] = await Promise.all([
+      readLocalWikiQuoteEntries(),
+      readTranslatedWikiQuoteEntries(),
+    ]);
+
+    expect(local.length).toBeGreaterThan(100);
+    expect(translated.length).toBeGreaterThan(50);
+
+    const envy = translated.find(entry => entry.quote === 'Envy is concealed admiration.');
+    expect(envy).toEqual(expect.objectContaining({
+      author: 'Søren Kierkegaard',
+      originalQuote: 'A inveja é admiração escondida.',
+    }));
+
+    const merged = mergeWikiBilingualPairs(local, translated);
+    const envyPair = merged.find(entry => entry.quote_en === 'Envy is concealed admiration.');
+    expect(envyPair?.quote_pt).toBe('A inveja é admiração escondida.');
+  });
+
   test('maps custom quotes with curated Portuguese translations', () => {
     const entry = mapCustomQuoteEntry({
       id: 1001,

@@ -77,7 +77,12 @@ async function readJsonArray(filePath) {
     const file = await fs.readFile(filePath, 'utf8');
     const parsed = JSON.parse(file);
     return Array.isArray(parsed) ? parsed : [];
-  } catch {
+  } catch (error) {
+    if (error?.code !== 'ENOENT') {
+      console.warn(`[PhiloMedia] Could not read quote data ${path.basename(filePath)}:`, error.message);
+    } else {
+      console.warn(`[PhiloMedia] Missing quote data file: ${path.basename(filePath)}`);
+    }
     return [];
   }
 }
